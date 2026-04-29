@@ -1,6 +1,6 @@
 # 🚀 Backend Learning Journey
 
-This repository contains my backend development learning and practice code while following the **Chai Aur Code YouTube series**.
+This repository contains my backend development learning and practice code while following **YouTube series**.
 
 ## 📚 What I'm Learning
 
