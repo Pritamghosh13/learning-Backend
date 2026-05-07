@@ -1,0 +1,33 @@
+import { Router } from "express";
+import { isPublishAVideo, getAllVideos } from "../controllers/video.controller.js";
+import { verifyJWT } from "../middlewares/auth.middleware.js";
+import { upload } from "../middlewares/multer.middleware.js";
+
+
+
+const router = Router()
+
+
+router.route("/").get(verifyJWT, getAllVideos);
+
+router.route("/publish-video").post(verifyJWT, 
+    upload.fields([
+        {
+            name: "videoFile",
+            maxCount: 1
+        },
+        {
+            name: "thumbnail",
+            maxCount: 1
+        }
+    ]),
+isPublishAVideo)
+
+
+
+router.get("/test", (req, res) => {
+    res.send("video route working");
+});
+
+
+export default router;
