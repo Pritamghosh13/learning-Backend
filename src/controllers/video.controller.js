@@ -113,13 +113,10 @@ const isPublishAVideo = asyncHandler(async (req, res) => {
 
 //get video by its id
 const getVideoById = asyncHandler(async(req, res) => {
-
-    console.log(req.params);
-    
+    // console.log(req.params);
     const {videoId} = req.params;
     // console.log(videoId);
     
-
     const video = await Video.findById(videoId).populate("owner", "username");
 
     // console.log(video);
