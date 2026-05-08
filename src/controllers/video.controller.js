@@ -1,4 +1,4 @@
-<<<<<<< HEAD
+
 import { asyncHandler } from "../utils/asyncHandeller.js"
 import { Video } from "../models/video.models.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
@@ -54,7 +54,7 @@ const getAllVideos = asyncHandler(async (req, res) => {
 })
 
 
-
+//publish a video with thumbnail, title and description.
 const isPublishAVideo = asyncHandler(async (req, res) => {
     const {tittle, description} = req.body;
 
@@ -92,6 +92,9 @@ const isPublishAVideo = asyncHandler(async (req, res) => {
         owner: req.user?._id
     });
 
+    console.log(video._id);
+    
+
     if (!video) {
         throw new ApiError(500, "Failed to publish video")
     }
@@ -108,108 +111,34 @@ const isPublishAVideo = asyncHandler(async (req, res) => {
 })
 
 
+//get video by its id
+const getVideoById = asyncHandler(async(req, res) => {
+
+    console.log(req.params);
+    
+    const {videoId} = req.params;
+    // console.log(videoId);
+    
+
+    const video = await Video.findById(videoId).populate("owner", "username");
+
+    // console.log(video);
+
+    if (!video) {
+        throw new ApiError(404, "Video not found");
+    }
+
+    return res.status(200)
+    .json(new ApiResponse(200, video, "Video fetch Successfully"))
+    
+
+})
+
 
 export {
     isPublishAVideo,
-    getAllVideos
+    getAllVideos,
+    getVideoById
 
 }
-=======
-import { asyncHandler } from "../utils/asyncHandeller.js"
-import { Video } from "../models/video.models.js";
-import { ApiResponse } from "../utils/ApiResponse.js";
 
-
-//get all videos based on query, sort, pagination
-const getAllVideos = asyncHandler(async (req, res) => {
-    const {page = 1, limit = 10, query, sortBy = "createdAt", sortType = "desc", userId} = req.query;
-
-    page = Number(page);
-    limit = Number(limit);
-
-    const filter = {};
-
-    if(query){
-        filter.$or = [
-            {tittle: {$regex: query, $options: "i"}},
-            {description: {$regex: query, $options: "i"}},
-            
-        ]
-    }
-
-    if(userId){
-        filter.owner = userId;
-    }
-
-    const skip = (page - 1) * limit;
-
-    const videos = await Video.find(filter).skip(skip).limit(limit)
-
-    const totalVideos = await Video.countDocuments(filter);
-
-    return res.status(200)
-    .json({
-        success: true,
-        page,
-        limit,
-        totalVideos,
-        totalPages : Math.ceil(totalVideos/limit),
-        message: "Video searched successfully"
-
-    })
-
-
-
-
-
-
-})import { asyncHandler } from "../utils/asyncHandeller.js"
-import { Video } from "../models/video.models.js";
-import { ApiResponse } from "../utils/ApiResponse.js";
-
-
-//get all videos based on query, sort, pagination
-const getAllVideos = asyncHandler(async (req, res) => {
-    const {page = 1, limit = 10, query, sortBy = "createdAt", sortType = "desc", userId} = req.query;
-
-    page = Number(page);
-    limit = Number(limit);
-
-    const filter = {};
-
-    if(query){
-        filter.$or = [
-            {tittle: {$regex: query, $options: "i"}},
-            {description: {$regex: query, $options: "i"}},
-            
-        ]
-    }
-
-    if(userId){
-        filter.owner = userId;
-    }
-
-    const skip = (page - 1) * limit;
-
-    const videos = await Video.find(filter).skip(skip).limit(limit)
-
-    const totalVideos = await Video.countDocuments(filter);
-
-    return res.status(200)
-    .json({
-        success: true,
-        page,
-        limit,
-        totalVideos,
-        totalPages : Math.ceil(totalVideos/limit),
-        message: "Video searched successfully"
-
-    })
-
-
-
-
-
-
-})
->>>>>>> a02ae20fae38fa326e589385fe15be77845adc0a
