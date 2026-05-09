@@ -227,11 +227,45 @@ const UpdateVideoContent = asyncHandler(async(req,res) => {
 })
 
 
+
+const deleteVideo = asyncHandler(async (req, res) => {
+    const { videoId } = req.params
+    
+    if(!videoId){
+        throw new ApiError(404, "Video is not found");
+    }
+
+    const exsitingVideo = await Video.findOne({
+        _id: videoId,
+        owner: req.user._id
+    })
+
+    if(!exsitingVideo){
+        throw new ApiError(500, "Video not found or unauthorized")
+    }
+
+    await cloudinary.uploader.destroy(exsitingVideo.videoFile.public_id,
+        {
+            resource_type: "video"
+        }
+    )
+    await cloudinary.uploader.destroy(exsitingVideo.thumbnail.public_id)
+
+    await Video.deleteOne({
+        _id: videoId,
+        owner: req.user._id
+    })
+
+    return res.status(200)
+    .json(new ApiResponse(200, {}, "The "))
+})
+
 export {
     isPublishAVideo,
     getAllVideos,
     getVideoById,
-    UpdateVideoContent
+    UpdateVideoContent,
+    deleteVideo
 
 }
 
