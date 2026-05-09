@@ -295,7 +295,8 @@ export {
     getAllVideos,
     getVideoById,
     UpdateVideoContent,
-    deleteVideo
+    deleteVideo,
+    togglePublishStatus
 
 }
 
