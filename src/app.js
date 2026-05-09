@@ -26,7 +26,7 @@ import videoRouter from "./routes/video.routes.js"
 //routes declaration
 app.use("/api/v1/users", userRouter)
 
-//
+//video router
 app.use("/api/v1/video", videoRouter)
 
 
