@@ -1,4 +1,4 @@
-
+import { v2 as cloudinary } from 'cloudinary'
 import { asyncHandler } from "../utils/asyncHandeller.js"
 import { Video } from "../models/video.models.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
@@ -65,9 +65,9 @@ const isPublishAVideo = asyncHandler(async (req, res) => {
     const videoLocalPath = req.files?.videoFile?.[0]?.path;
     const thumbnailLocalPath = req.files?.thumbnail?.[0]?.path;
 
-    console.log(req.files);
-    console.log(videoLocalPath);
-    console.log(thumbnailLocalPath);
+    // console.log(req.files);
+    // console.log(videoLocalPath);
+    // console.log(thumbnailLocalPath);
 
     if (!videoLocalPath) {
         throw new ApiError(400, "Video file is required");
@@ -86,8 +86,15 @@ const isPublishAVideo = asyncHandler(async (req, res) => {
     const video = await Video.create({
         tittle, 
         description,
-        videofile: videoUpload.url,
-        thumbnail: thumbnailUpload.url || "",
+        videoFile: {
+            url : videoUpload.url,
+            public_id: videoUpload.public_id
+        },
+        thumbnail: {
+            url : thumbnailUpload.url,
+            public_id: thumbnailUpload.public_id
+        },
+
         duration: videoUpload.duration,
         owner: req.user?._id
     });
@@ -132,10 +139,99 @@ const getVideoById = asyncHandler(async(req, res) => {
 })
 
 
+
+//Update video contents.
+const UpdateVideoContent = asyncHandler(async(req,res) => {
+
+    const { tittle, description } = req.body;
+    const {videoId} = req.params
+    // if (!tittle || !description) {
+    //     throw new ApiError(400, "Tittle and description are required");
+    // }
+
+    const thumbnailLocalPath = req.files?.thumbnail?.[0]?.path;
+
+    let thumbnailUrl;
+    let thumbnailPublic_id;
+
+    if(thumbnailLocalPath){
+    const thumbnailUpload = await uploadOnCloudinary(thumbnailLocalPath);
+
+    if(!thumbnailUpload){
+        throw new ApiError(500, "Thumbnail upload failed");
+    }
+        thumbnailUrl = thumbnailUpload.url;
+        thumbnailPublic_id = thumbnailUpload.public_id
+
+
+    }
+
+    const updateFileds = {};
+
+    if(tittle){
+        updateFileds.tittle = tittle;
+    }
+
+    if (description) {
+        updateFileds.description = description;
+    }
+
+    if(thumbnailUrl){
+        // updateFileds.thumbnail.url = thumbnailUrl
+        // updateFileds.thumbnail.public_id = thumbnailPublic_id
+
+        updateFileds.thumbnail = {
+            url: thumbnailUrl,
+            public_id : thumbnailPublic_id
+        }
+
+
+        const exsitingVideo = await Video.findOne({
+            _id: videoId,
+            owner: req.user._id
+        })
+
+        if(exsitingVideo?.thumbnail?.public_id){
+            await cloudinary.uploader.destroy(exsitingVideo.thumbnail.public_id)
+        }
+    }
+
+    const updatedVideo = await Video.findOneAndUpdate(        
+        {
+            _id: videoId,
+            owner: req.user._id
+        },
+
+        {
+            $set: updateFileds
+        },
+        {
+            new: true,
+            runValidators: true
+        }
+
+    )
+
+    if (!updatedVideo) {
+        throw new ApiError(500, "Update video content failed");
+    }
+
+    return res.status(200)
+    .json(new ApiResponse(200, 
+        updatedVideo,
+        "Updating video content is successful"
+    ))
+
+
+
+})
+
+
 export {
     isPublishAVideo,
     getAllVideos,
-    getVideoById
+    getVideoById,
+    UpdateVideoContent
 
 }
 
