@@ -46,7 +46,7 @@ const addComment = asyncHandler(async (req, res) => {
 })
 
 
-
+//updating comment
 const updateComment = asyncHandler(async (req, res) => {
     const {commentId} = req.params;
     const {content} = req.body;
@@ -75,11 +75,66 @@ const updateComment = asyncHandler(async (req, res) => {
 })
 
 
+//delete comment
+const deleteComment = asyncHandler(async(req, res) => {
+    const {commentId} = req.params;
+
+    const comment = await Comment.deleteOne({
+        _id: commentId,
+        owner: req.user?._id
+    })
+
+    if (comment.deletedCount === 0) {
+    throw new ApiError(404, "Comment not found or unauthorized");
+    }
+
+    return res.status(200)
+    .json(new ApiResponse(200, {}, "Comment deleted successfully"))
+})
+
+
+
+//get all comment of a video
+const getVideoComments = asyncHandler(async (req, res) => {
+    const {videoId} = req.params
+    let {page = 1, limit = 10} = req.query
+
+    page = Number(page);
+    limit = Number(limit);
+
+    const skip = (page - 1) * limit;
+
+    const comments = await Comment.find({
+        video: videoId
+    }).skip(skip)
+    .limit(limit)
+    .populate("owner", "username fullname")
+
+    const totalComment = await Comment.countDocuments({
+        video: videoId
+    })
+
+    return res.status(200).
+    json({
+        sucess: true,
+        page,
+        limit,
+        totalComment,
+        totalPages: Math.ceil(totalComment/limit),
+        comments,
+        message: "Comment fetched successfully"
+    })
+
+})
+
+
 
 
 export {
     addComment,
-    updateComment
+    updateComment,
+    deleteComment,
+    getVideoComments
     
 
 }
