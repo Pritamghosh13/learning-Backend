@@ -11,6 +11,9 @@ import { Comment } from "../models/comment.models.js";
 const toggleVideoLike = asyncHandler(async (req, res) => {
     const {videoId} = req.params;
 
+    // console.log(req.user)
+    // console.log(req.user?._id)
+
     if (!videoId) {
         throw new ApiError(400,"Video Id is required")
     }
@@ -89,11 +92,31 @@ const toggleCommentLike = asyncHandler(async (req, res) => {
 // }
 
 
+//get all liked videos.
+const getLikedVideos = asyncHandler(async (req, res) => {
+    const likedVideo = await Like.find({
+        likedBy: req.user?._id,
+        video: {$exists: true}
+    }).populate("video")
+
+    if (!likedVideo) {
+        throw new ApiError(404, "Liked videos not found")
+    }
+   
+    return res.status(200)
+    .json(new ApiResponse(200,
+        likedVideo,
+        "Liked videos fetched successfully"
+    ))
+})
+
+
 
 
 export {
     toggleVideoLike,
-    toggleCommentLike
+    toggleCommentLike,
+    getLikedVideos
 }
 
 
